@@ -1,0 +1,148 @@
+{
+  "summary": {
+    "execution_accuracy": 0.7,
+    "correct": 7,
+    "total": 10,
+    "skipped": 0,
+    "error_breakdown": {
+      "pred_error": 1,
+      "mismatch": 2,
+      "gold_error": 0
+    },
+    "per_database_accuracy": {
+      "california_schools": 0.7
+    }
+  },
+  "results": [
+    {
+      "task_idx": 0,
+      "db_id": "california_schools",
+      "question": "What is the highest eligible free rate for K-12 students in the schools in Alameda County?",
+      "hint": "Eligible free rate for K-12 = `Free Meal Count (K-12)` / `Enrollment (K-12)`",
+      "gold_sql": "SELECT `Free Meal Count (K-12)` / `Enrollment (K-12)` FROM frpm WHERE `County Name` = 'Alameda' ORDER BY (CAST(`Free Meal Count (K-12)` AS REAL) / `Enrollment (K-12)`) DESC LIMIT 1",
+      "predicted_sql": "SELECT MAX(`Percent (%) Eligible Free (K-12)`) AS HighestEligibleFreeRate\nFROM frpm\nWHERE `County Name` = 'Alameda';",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 1,
+      "db_id": "california_schools",
+      "question": "Please list the lowest three eligible free rates for students aged 5-17 in continuation schools.",
+      "hint": "Eligible free rates for students aged 5-17 = `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)`",
+      "gold_sql": "SELECT `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` FROM frpm WHERE `Educational Option Type` = 'Continuation School' AND `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` IS NOT NULL ORDER BY `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` ASC LIMIT 3",
+      "predicted_sql": "SELECT \n    `School Name`, \n    `Free Meal Count (Ages 5-17)` / `Enrollment (Ages 5-17)` AS EligibleFreeRate\nFROM \n    frpm\nWHERE \n    `Educational Option Type` = 'Continuation School'\nORDER BY \n    EligibleFreeRate ASC\nLIMIT 3;",
+      "match": false,
+      "error_type": "mismatch",
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 2,
+      "db_id": "california_schools",
+      "question": "Please list the zip code of all the charter schools in Fresno County Office of Education.",
+      "hint": "Charter schools refers to `Charter School (Y/N)` = 1 in the table fprm",
+      "gold_sql": "SELECT T2.Zip FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`District Name` = 'Fresno County Office of Education' AND T1.`Charter School (Y/N)` = 1",
+      "predicted_sql": "SELECT DISTINCT T1.Zip\nFROM schools AS T1\nJOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode\nWHERE T1.District = 'Fresno County Office of Education' AND T2.`Charter School (Y/N)` = 1;",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 3,
+      "db_id": "california_schools",
+      "question": "What is the unabbreviated mailing street address of the school with the highest FRPM count for K-12 students?",
+      "hint": "",
+      "gold_sql": "SELECT T2.MailStreet FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode ORDER BY T1.`FRPM Count (K-12)` DESC LIMIT 1",
+      "predicted_sql": "SELECT T2.MailStreet\nFROM frpm AS T1\nJOIN schools AS T2 ON T1.CDSCode = T2.CDSCode\nORDER BY T1.`FRPM Count (K-12)` DESC\nLIMIT 1;",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 4,
+      "db_id": "california_schools",
+      "question": "Please list the phone numbers of the direct charter-funded schools that are opened after 2000/1/1.",
+      "hint": "Charter schools refers to `Charter School (Y/N)` = 1 in the frpm",
+      "gold_sql": "SELECT T2.Phone FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.`Charter Funding Type` = 'Directly funded' AND T1.`Charter School (Y/N)` = 1 AND T2.OpenDate > '2000-01-01'",
+      "predicted_sql": "SELECT DISTINCT T1.Phone\nFROM schools AS T1\nJOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode\nWHERE T1.Charter = 1 AND T1.FundingType = 'Directly funded' AND T1.OpenDate > '2000-01-01'",
+      "match": false,
+      "error_type": "mismatch",
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 5,
+      "db_id": "california_schools",
+      "question": "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?",
+      "hint": "Exclusively virtual refers to Virtual = 'F'",
+      "gold_sql": "SELECT COUNT(DISTINCT T2.School) FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Virtual = 'F' AND T1.AvgScrMath > 400",
+      "predicted_sql": "SELECT COUNT(*)\nFROM satscores s\nJOIN schools sch ON s.cds = sch.CDSCode\nWHERE s.AvgScrMath > 400 AND sch.Virtual = 'F';",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 6,
+      "db_id": "california_schools",
+      "question": "Among the schools with the SAT test takers of over 500, please list the schools that are magnet schools or offer a magnet program.",
+      "hint": "Magnet schools or offer a magnet program means that Magnet = 1",
+      "gold_sql": "SELECT T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T2.Magnet = 1 AND T1.NumTstTakr > 500",
+      "predicted_sql": "SELECT s.School\nFROM schools s\nJOIN satscores ss ON s.CDSCode = ss.cds\nWHERE ss.NumTstTakr > 500 AND s.Magnet = 1;",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 7,
+      "db_id": "california_schools",
+      "question": "What is the phone number of the school that has the highest number of test takers with an SAT score of over 1500?",
+      "hint": "",
+      "gold_sql": "SELECT T2.Phone FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1",
+      "predicted_sql": "SELECT T1.Phone\nFROM schools AS T1\nJOIN satscores AS T2 ON T1.CDSCode = T2.cds\nWHERE T2.NumGE1500 = (\n    SELECT MAX(NumGE1500)\n    FROM satscores\n)",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 8,
+      "db_id": "california_schools",
+      "question": "What is the number of SAT test takers of the schools with the highest FRPM count for K-12 students?",
+      "hint": "",
+      "gold_sql": "SELECT NumTstTakr FROM satscores WHERE cds = ( SELECT CDSCode FROM frpm ORDER BY `FRPM Count (K-12)` DESC LIMIT 1 )",
+      "predicted_sql": "SELECT s.NumTstTakr\nFROM satscores s\nJOIN frpm f ON s.cds = f.CDSCode\nWHERE f.`FRPM Count (K-12)` = (SELECT MAX(`FRPM Count (K-12)`) FROM frpm)",
+      "match": true,
+      "error_type": null,
+      "pred_error": null,
+      "gold_error": null,
+      "skipped": false
+    },
+    {
+      "task_idx": 9,
+      "db_id": "california_schools",
+      "question": "Among the schools with the average score in Math over 560 in the SAT test, how many schools are directly charter-funded?",
+      "hint": "",
+      "gold_sql": "SELECT COUNT(T2.`School Code`) FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath > 560 AND T2.`Charter Funding Type` = 'Directly funded'",
+      "predicted_sql": "SELECT COUNT(DISTINCT s.CDSCode)\nFROM satscores s\nJOIN schools sch ON s.cds = sch.CDSCode\nWHERE s.AvgScrMath > 560 AND sch.FundingType = 'Directly funded' AND sch.Charter = 1;",
+      "match": false,
+      "error_type": "pred_error",
+      "pred_error": "no such column: s.CDSCode",
+      "gold_error": null,
+      "skipped": false
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+# Data - databases are too large for git
+data/dev/dev_databases/
+data/train/train_databases/
+*.sqlite
+
+# Keep task definitions
+!data/dev/dev.json
+!data/dev/dev_tables.json
+!data/train/train.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
+
+# Temp
+/tmp/

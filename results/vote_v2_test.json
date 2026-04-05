@@ -1,0 +1,12 @@
+{
+  "0": "SELECT MAX(CAST(`Free Meal Count (K-12)` AS REAL) / `Enrollment (K-12)`) AS HighestEligibleFreeRate\nFROM frpm\nWHERE `County Name` = 'Alameda';",
+  "1": "SELECT CAST(`Free Meal Count (Ages 5-17)` AS REAL) / `Enrollment (Ages 5-17)` AS EligibleFreeRate\nFROM frpm\nWHERE `Educational Option Type` = 'Continuation School'\nORDER BY EligibleFreeRate ASC\nLIMIT 3;",
+  "2": "SELECT DISTINCT T1.Zip\nFROM schools AS T1\nJOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode\nWHERE T2.`Charter School (Y/N)` = 1 AND T1.District = 'Fresno County Office of Education';",
+  "3": "SELECT s.MailStreet\nFROM schools s\nJOIN frpm f ON s.CDSCode = f.CDSCode\nORDER BY f.`FRPM Count (K-12)` DESC\nLIMIT 1;",
+  "4": "SELECT DISTINCT T2.Phone\nFROM frpm AS T1\nJOIN schools AS T2 ON T1.CDSCode = T2.CDSCode\nWHERE T1.`Charter School (Y/N)` = 1 AND T2.FundingType = 'Directly funded' AND T2.OpenDate > '2000-01-01'",
+  "5": "SELECT COUNT(*)\nFROM satscores s\nJOIN schools sch ON s.cds = sch.CDSCode\nWHERE s.AvgScrMath > 400 AND sch.Virtual = 'F';",
+  "6": "SELECT s.School\nFROM satscores ssc\nJOIN schools s ON ssc.cds = s.CDSCode\nWHERE ssc.NumTstTakr > 500 AND s.Magnet = 1;",
+  "7": "SELECT T1.Phone\nFROM schools AS T1\nJOIN satscores AS T2 ON T1.CDSCode = T2.cds\nWHERE T2.NumGE1500 = (\n    SELECT MAX(NumGE1500)\n    FROM satscores\n)\nLIMIT 1;",
+  "8": "SELECT NumTstTakr\nFROM satscores\nWHERE cds = (\n    SELECT CDSCode\n    FROM frpm\n    ORDER BY `FRPM Count (K-12)` DESC\n    LIMIT 1\n)",
+  "9": "SELECT COUNT(DISTINCT f.CDSCode)\nFROM frpm f\nJOIN schools s ON f.CDSCode = s.CDSCode\nJOIN satscores sat ON f.CDSCode = sat.cds\nWHERE sat.AvgScrMath > 560 AND s.FundingType = 'Directly funded' AND s.Charter = 1;"
+}
