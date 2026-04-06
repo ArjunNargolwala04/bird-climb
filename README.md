@@ -12,7 +12,7 @@ Maximizing execution accuracy on the [BIRD](https://bird-bench.github.io/) text-
 | GPT-4o verifier (n=5) | Qwen2.5-Coder-32B + GPT-4o | 61.1% | GPT-4o picks best candidate |
 | Majority vote + schema linking | Qwen2.5-Coder-32B | 60.0% | Schema linking slightly hurt |
 | Greedy baseline | Qwen2.5-Coder-7B | 50.5% | v2 prompt |
-| GRPO + LoRA | Qwen2.5-Coder-7B | 50.4% | 1 epoch, 1000 tasks (see analysis below) |
+| GRPO + LoRA | Qwen2.5-Coder-7B | **51.2%** | 2 epochs, LR 2e-5, 295 useful rollouts |
 
 Evaluated on 1,534 BIRD dev tasks across 11 databases.
 
@@ -59,12 +59,14 @@ Attempted GRPO (Group Relative Policy Optimization) on Qwen2.5-Coder-7B-Instruct
 - Two-phase offline approach: collect rollouts with vLLM, then train on fixed rollouts
 - 1,000 training tasks from BIRD train set, group size 4 (4,000 completions total)
 - LoRA rank 16, alpha 32, targeting all linear layers (40M trainable params)
-- KL coefficient 0.05, learning rate 1e-5 with cosine schedule
 - Reward: 1.0 for exact match, 0.1 for valid SQL with wrong results, 0.0 for errors
 
-**Result:** The RL-trained model scored 50.4% vs the 50.5% baseline (-0.1pp), essentially unchanged. 74 training steps over 295 rollouts with reward variance (out of 1,000 total) completed in 6 minutes.
+**RL iteration:**
+- **Run 1** (LR 1e-5, 1 epoch, 74 steps): Flat (-0.1pp). Only 295/1000 rollouts had reward variance — too little gradient signal.
+- **Run 2** (LR 5e-5, 3 epochs): Diverged. KL blew up to -0.65, loss exploded. LR too aggressive.
+- **Run 3** (LR 2e-5, 2 epochs, 148 steps): **+0.72pp** (50.5% -> 51.2%). KL stayed controlled (-0.07), loss settled. Gained 73 tasks, lost 62, net +11.
 
-**Why it didn't work:** The rollouts had high baseline reward (70.7% exact match rate), which means most groups had all-correct or all-wrong completions. Only 295/1,000 tasks had reward variance across the group — the rest provided zero gradient signal. A longer training run with more diverse rollouts (higher temperature, larger group size, more tasks from harder databases) would likely help. The negative KL values in the training logs also suggest the KL penalty was too weak to prevent policy drift.
+**Key learnings:** LR sensitivity was critical — 2x too high diverged, 2x too low gave no signal. The base model's 70% exact match on training data meant most groups had zero advantage (all correct or all wrong). With more time: larger group size (8-16), higher temperature (0.9), online rollouts, and training on harder tasks would likely yield stronger gains.
 
 ## Infrastructure
 
