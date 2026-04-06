@@ -1,0 +1,138 @@
+
+============================================================
+STEP 1: Baseline Qwen2.5-Coder-7B-Instruct
+============================================================
+Running inference with Qwen7B on 1534 tasks...
+  Batch 0-50: 130.8s (0.4 tasks/s)
+  Batch 50-100: 1.4s (36.9 tasks/s)
+  Batch 100-150: 1.0s (49.0 tasks/s)
+  Batch 150-200: 1.2s (42.3 tasks/s)
+  Batch 200-250: 0.7s (67.6 tasks/s)
+  Batch 250-300: 0.9s (55.8 tasks/s)
+  Batch 300-350: 1.0s (50.4 tasks/s)
+  Batch 350-400: 1.0s (50.7 tasks/s)
+  Batch 400-450: 1.1s (46.9 tasks/s)
+  Batch 450-500: 1.1s (45.3 tasks/s)
+  Batch 500-550: 1.0s (47.9 tasks/s)
+  Batch 550-600: 1.0s (49.3 tasks/s)
+  Batch 600-650: 0.9s (54.3 tasks/s)
+  Batch 650-700: 0.9s (57.1 tasks/s)
+  Batch 700-750: 0.9s (56.9 tasks/s)
+  Batch 750-800: 0.8s (64.6 tasks/s)
+  Batch 800-850: 0.8s (61.4 tasks/s)
+  Batch 850-900: 1.1s (44.8 tasks/s)
+  Batch 900-950: 1.2s (40.8 tasks/s)
+  Batch 950-1000: 1.1s (44.8 tasks/s)
+  Batch 1000-1050: 1.3s (39.4 tasks/s)
+  Batch 1050-1100: 1.4s (36.5 tasks/s)
+  Batch 1100-1150: 1.4s (36.6 tasks/s)
+  Batch 1150-1200: 0.9s (52.9 tasks/s)
+  Batch 1200-1250: 0.9s (54.4 tasks/s)
+  Batch 1250-1300: 1.1s (43.9 tasks/s)
+  Batch 1300-1350: 1.0s (52.1 tasks/s)
+  Batch 1350-1400: 1.0s (48.9 tasks/s)
+  Batch 1400-1450: 0.9s (54.6 tasks/s)
+  Batch 1450-1500: 2.1s (23.5 tasks/s)
+  Batch 1500-1534: 0.8s (44.2 tasks/s)
+Inference complete: 1534 predictions in 162.7s
+Saved to results/baseline_7b.json
+
+Evaluating baseline...
+
+==================================================
+BIRD Execution Accuracy: 0.5052 (774/1532)
+  Skipped (gold errors): 2
+  Pred SQL errors:       170
+  Result mismatches:     588
+
+Per-database accuracy:
+  california_schools             0.4494 (40/89)
+  card_games                     0.4526 (86/190)
+  codebase_community             0.4811 (89/185)
+  debit_card_specializing        0.5000 (32/64)
+  european_football_2            0.5659 (73/129)
+  financial                      0.4340 (46/106)
+  formula_1                      0.4598 (80/174)
+  student_club                   0.6519 (103/158)
+  superhero                      0.7829 (101/129)
+  thrombosis_prediction          0.3374 (55/163)
+  toxicology                     0.4759 (69/145)
+==================================================
+
+Detailed results saved to: results/baseline_7b_detailed.json
+[tracker] Logged: baseline_7b | accuracy=0.5052 | 7B greedy baseline, v2 prompt
+
+============================================================
+STEP 2: RL-trained Qwen2.5-Coder-7B-Instruct + LoRA
+============================================================
+Running inference with Qwen7BLoRA on 1534 tasks...
+  Batch 0-50: 177.2s (0.3 tasks/s)
+  Batch 50-100: 1.6s (30.9 tasks/s)
+  Batch 100-150: 1.3s (37.6 tasks/s)
+  Batch 150-200: 1.6s (30.5 tasks/s)
+  Batch 200-250: 1.0s (49.2 tasks/s)
+  Batch 250-300: 1.0s (48.3 tasks/s)
+  Batch 300-350: 1.4s (35.1 tasks/s)
+  Batch 350-400: 1.5s (32.5 tasks/s)
+  Batch 400-450: 1.4s (35.4 tasks/s)
+  Batch 450-500: 1.4s (36.8 tasks/s)
+  Batch 500-550: 1.3s (39.8 tasks/s)
+  Batch 550-600: 1.2s (43.5 tasks/s)
+  Batch 600-650: 1.1s (44.8 tasks/s)
+  Batch 650-700: 1.2s (40.6 tasks/s)
+  Batch 700-750: 1.2s (42.9 tasks/s)
+  Batch 750-800: 1.0s (48.0 tasks/s)
+  Batch 800-850: 1.0s (47.8 tasks/s)
+  Batch 850-900: 1.4s (36.7 tasks/s)
+  Batch 900-950: 1.6s (31.8 tasks/s)
+  Batch 950-1000: 1.4s (36.8 tasks/s)
+  Batch 1000-1050: 2.4s (20.5 tasks/s)
+  Batch 1050-1100: 2.1s (24.2 tasks/s)
+  Batch 1100-1150: 1.9s (25.8 tasks/s)
+  Batch 1150-1200: 1.4s (36.0 tasks/s)
+  Batch 1200-1250: 1.3s (39.2 tasks/s)
+  Batch 1250-1300: 1.7s (29.6 tasks/s)
+  Batch 1300-1350: 1.2s (41.0 tasks/s)
+  Batch 1350-1400: 1.2s (40.0 tasks/s)
+  Batch 1400-1450: 1.8s (27.5 tasks/s)
+  Batch 1450-1500: 3.5s (14.5 tasks/s)
+  Batch 1500-1534: 1.1s (31.7 tasks/s)
+Inference complete: 1534 predictions in 221.5s
+Saved to results/rl_7b.json
+
+Evaluating RL model...
+
+==================================================
+BIRD Execution Accuracy: 0.5039 (772/1532)
+  Skipped (gold errors): 2
+  Pred SQL errors:       168
+  Result mismatches:     592
+
+Per-database accuracy:
+  california_schools             0.4270 (38/89)
+  card_games                     0.4526 (86/190)
+  codebase_community             0.4757 (88/185)
+  debit_card_specializing        0.5000 (32/64)
+  european_football_2            0.5426 (70/129)
+  financial                      0.4434 (47/106)
+  formula_1                      0.4655 (81/174)
+  student_club                   0.6582 (104/158)
+  superhero                      0.7674 (99/129)
+  thrombosis_prediction          0.3497 (57/163)
+  toxicology                     0.4828 (70/145)
+==================================================
+
+Detailed results saved to: results/rl_7b_detailed.json
+[tracker] Logged: rl_7b | accuracy=0.5039 | 7B + GRPO LoRA, v2 prompt
+
+============================================================
+COMPARISON: Base 7B vs RL 7B
+============================================================
+  Base 7B accuracy:  0.5052
+  RL 7B accuracy:    0.5039
+  Delta:             -0.0013
+  Tasks gained:      13
+  Tasks lost:        15
+  Both correct:      759
+  Both wrong:        747
+============================================================

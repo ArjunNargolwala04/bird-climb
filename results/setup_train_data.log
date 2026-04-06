@@ -1,0 +1,44 @@
+✓ Initialized. View run at 
+https://modal.com/apps/arjunvnargolwala/main/ap-LID8dQAkQEQvczCpVWC8YF
+✓ Created objects.
+├── 🔨 Created mount /Users/arjunnargolwala/bird-climb/rl/setup_train_data.py
+├── 🔨 Created function download_train_databases.
+└── 🔨 Created function upload_train_json.
+=== Step 1: Upload train.json ===
+Uploaded train.json: 6601 tasks
+Unique databases: 69
+Top 10 databases by task count:
+  works_cycles: 383 tasks
+  public_review_platform: 256 tasks
+  movie_3: 223 tasks
+  mondial_geo: 211 tasks
+  soccer_2016: 190 tasks
+  books: 184 tasks
+  simpson_episodes: 164 tasks
+  student_loan: 162 tasks
+  olympics: 156 tasks
+  hockey: 156 tasks
+Result: {'num_tasks': 6601, 'num_databases': 69}
+
+=== Step 2: Download train databases ===
+Listing files in premai-io/birdbench...
+Found 69 .sqlite files
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+  Downloaded 10 databases...
+  Downloaded 20 databases...
+  Downloaded 30 databases...
+  Downloaded 40 databases...
+  Downloaded 50 databases...
+  Downloaded 60 databases...
+
+Download complete: 69 new, 0 already existed
+
+Total database directories: 69
+Result: {'downloaded': 69, 'skipped': 0, 'total_dbs': 69}
+
+Done! Volume 'bird-climb-train-data' is ready.
+Stopping app - local entrypoint completed.
+Sanity check - address: 9 tables: ['CBSA', 'state', 'congress', 'zip_data', 'alias']
+Runner terminated.
+✓ App completed. View run at 
+https://modal.com/apps/arjunvnargolwala/main/ap-LID8dQAkQEQvczCpVWC8YF
