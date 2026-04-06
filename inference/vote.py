@@ -74,6 +74,7 @@ def run_vote(
     max_tokens: int = 1024,
     limit: int | None = None,
     prompt_version: str = "v1",
+    use_schema_linking: bool = False,
 ):
     """Run majority vote inference over dev set."""
     tasks = load_dev_tasks(data_dir)
@@ -97,7 +98,7 @@ def run_vote(
         prompts = []
         task_indices = []
         for task in batch_tasks:
-            prompt = build_prompt_for_task(task, data_dir, prompt_version=prompt_version)
+            prompt = build_prompt_for_task(task, data_dir, prompt_version=prompt_version, use_schema_linking=use_schema_linking)
             prompts.append(prompt)
             task_indices.append(task["task_idx"])
 
@@ -193,6 +194,8 @@ def main():
     parser.add_argument("--skip_eval", action="store_true")
     parser.add_argument("--prompt_version", type=str, default="v1")
     parser.add_argument("--name", type=str, default=None)
+    parser.add_argument("--schema_linking", action="store_true",
+                        help="Enable schema linking to filter irrelevant tables")
 
     args = parser.parse_args()
 
@@ -205,6 +208,7 @@ def main():
         max_tokens=args.max_tokens,
         limit=args.limit,
         prompt_version=args.prompt_version,
+        use_schema_linking=args.schema_linking,
     )
 
     if not args.skip_eval:
@@ -231,11 +235,12 @@ def main():
                 "n_samples": args.n_samples,
                 "prompt_version": args.prompt_version,
                 "method": "majority_vote",
+                "schema_linking": args.schema_linking,
             },
             accuracy=summary["execution_accuracy"],
             correct=summary["correct"],
             total=summary["total"],
-            notes=f"vote n={args.n_samples} temp={args.temperature} prompt={args.prompt_version}",
+            notes=f"vote n={args.n_samples} temp={args.temperature} prompt={args.prompt_version} sl={args.schema_linking}",
             results_path=eval_output,
         )
 

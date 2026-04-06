@@ -67,22 +67,44 @@ def load_predictions(predictions_path: str) -> dict:
 
 def execute_sql(db_path: str, sql: str, timeout: float = 10.0) -> tuple[Optional[list[tuple]], Optional[str]]:
     """
-    Execute SQL against a SQLite database.
-    
+    Execute SQL against a SQLite database with a real execution time limit.
+
+    Uses threading to enforce a hard timeout on query execution,
+    since sqlite3's timeout parameter only controls lock wait time.
+
     Returns:
         (results, error) - results is a list of tuples if successful,
                           error is a string if execution failed.
     """
-    try:
-        conn = sqlite3.connect(db_path, timeout=timeout)
-        conn.execute("PRAGMA journal_mode=wal;")
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        results = cursor.fetchall()
-        conn.close()
-        return results, None
-    except Exception as e:
-        return None, str(e)
+    import threading
+
+    result_holder = [None, None]  # [results, error]
+    cancel = threading.Event()
+
+    def _run():
+        try:
+            conn = sqlite3.connect(db_path, timeout=5.0)
+            conn.execute("PRAGMA journal_mode=wal;")
+            # progress_handler is called every N SQLite VM ops
+            # returning non-zero interrupts the query
+            conn.set_progress_handler(lambda: 1 if cancel.is_set() else 0, 10000)
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            result_holder[0] = cursor.fetchall()
+            conn.close()
+        except Exception as e:
+            result_holder[1] = str(e)
+
+    thread = threading.Thread(target=_run, daemon=True)
+    thread.start()
+    thread.join(timeout=timeout)
+
+    if thread.is_alive():
+        cancel.set()
+        thread.join(timeout=2.0)
+        return None, f"Query timed out after {timeout}s"
+
+    return result_holder[0], result_holder[1]
 
 
 def normalize_result_set(results: list[tuple]) -> list[tuple]:
