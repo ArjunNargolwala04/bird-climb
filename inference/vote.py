@@ -59,7 +59,7 @@ def pick_winner(candidates: list[dict]) -> str:
         if h not in hash_to_candidates:
             hash_to_candidates[h] = (i, c)
 
-    # Pick mode (most common result set), break ties by earliest index
+    # Pick mode, break ties by earliest index
     best_hash = votes.most_common(1)[0][0]
     _, best_candidate = hash_to_candidates[best_hash]
     return best_candidate["sql"]
@@ -87,7 +87,7 @@ def run_vote(
     Qwen32B = modal.Cls.from_name("bird-climb", "Qwen32B")
     model = Qwen32B()
 
-    # Phase 1: Get all generations from Modal
+    # Get all generations from Modal
     all_completions = {}  # task_idx -> list of raw completions
     total_time = 0
 
@@ -130,7 +130,7 @@ def run_vote(
 
     print(f"\nInference done: {len(all_completions)} tasks in {total_time:.1f}s", flush=True)
 
-    # Phase 2: Local SQL execution + voting
+    # Local SQL execution + voting
     print("Running local SQL execution and voting...", flush=True)
     predictions = {}
     vote_stats = {"unanimous": 0, "majority": 0, "no_majority": 0, "all_failed": 0}

@@ -171,7 +171,7 @@ def build_all_prompts(
     return prompts
 
 
-# ── CLI for testing ───────────────────────────────────────────────
+# CLI for testing
 
 if __name__ == "__main__":
     import argparse

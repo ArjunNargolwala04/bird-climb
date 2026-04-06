@@ -1,0 +1,75 @@
+✓ Initialized. View run at 
+https://modal.com/apps/arjunvnargolwala/main/ap-mvomvBMj9ZmoWN36Y5p7Cf
+✓ Created objects.
+├── 🔨 Created mount /Users/arjunnargolwala/bird-climb/rl/train.py
+├── 🔨 Created function collect_rollouts.
+└── 🔨 Created function train_grpo.
+
+=== Phase 2: GRPO Training ===
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+============================================================
+Phase 2: GRPO Training
+============================================================
+Loaded 1000 rollouts
+Rollouts with reward variance: 295/1000
+Loading policy model + LoRA...
+`torch_dtype` is deprecated! Use `dtype` instead!
+
+[1ALoading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+[1ALoading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.90s/it]
+[1ALoading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.92s/it]
+[1ALoading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.82s/it]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.26s/it]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.49s/it]
+trainable params: 40,370,176 || all params: 7,655,986,688 || trainable%: 0.5273
+Loading reference model (frozen)...
+
+[1ALoading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+[1ALoading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.01it/s]
+[1ALoading checkpoint shards:  50%|█████     | 2/4 [00:02<00:02,  1.00s/it]
+[1ALoading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.05it/s]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.50it/s]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.28it/s]
+Training: 295 rollouts, batch_size=4, epochs=2, steps=146
+
+--- Epoch 1/2 ---
+Step 10/146 | loss=-0.4139 | kl=0.0001 | reward=0.541 | exact=0.250 | lr=1.98e-05 | elapsed=54s | eta=735s
+Step 20/146 | loss=-0.3117 | kl=-0.0001 | reward=0.430 | exact=0.750 | lr=1.92e-05 | elapsed=103s | eta=648s
+Step 30/146 | loss=-0.0506 | kl=0.0000 | reward=0.458 | exact=0.438 | lr=1.82e-05 | elapsed=147s | eta=567s
+Step 40/146 | loss=-0.4500 | kl=-0.0009 | reward=0.560 | exact=0.375 | lr=1.69e-05 | elapsed=194s | eta=515s
+Step 50/146 | loss=-0.3568 | kl=-0.0028 | reward=0.527 | exact=0.562 | lr=1.53e-05 | elapsed=237s | eta=455s
+Step 60/146 | loss=-0.5198 | kl=-0.0038 | reward=0.452 | exact=0.562 | lr=1.35e-05 | elapsed=291s | eta=417s
+Step 70/146 | loss=-0.9791 | kl=-0.0100 | reward=0.567 | exact=0.562 | lr=1.16e-05 | elapsed=338s | eta=367s
+
+--- Epoch 2/2 ---
+Step 80/146 | loss=-2.4202 | kl=-0.0299 | reward=0.497 | exact=0.562 | lr=9.65e-06 | elapsed=390s | eta=322s
+Step 90/146 | loss=-1.7821 | kl=-0.0250 | reward=0.470 | exact=0.375 | lr=7.78e-06 | elapsed=441s | eta=274s
+Step 100/146 | loss=-2.6450 | kl=-0.0641 | reward=0.508 | exact=0.375 | lr=6.06e-06 | elapsed=485s | eta=223s
+Step 110/146 | loss=-2.6037 | kl=-0.0514 | reward=0.477 | exact=0.375 | lr=4.57e-06 | elapsed=532s | eta=174s
+Step 120/146 | loss=-3.5853 | kl=-0.0571 | reward=0.551 | exact=0.750 | lr=3.37e-06 | elapsed=579s | eta=126s
+Step 130/146 | loss=-3.2643 | kl=-0.0749 | reward=0.484 | exact=0.625 | lr=2.53e-06 | elapsed=626s | eta=77s
+Step 140/146 | loss=-3.5307 | kl=-0.0650 | reward=0.559 | exact=0.500 | lr=2.07e-06 | elapsed=676s | eta=29s
+
+============================================================
+Training complete! 148 steps in 725s (12.1m)
+Final checkpoint: /models/rl_checkpoints/final
+============================================================
+Training result: {'steps': 148, 'elapsed': 724.8207256793976, 'checkpoint': '/models/rl_checkpoints/final'}
+Stopping app - local entrypoint completed.
+Runner terminated.
+✓ App completed. View run at 
+https://modal.com/apps/arjunvnargolwala/main/ap-mvomvBMj9ZmoWN36Y5p7Cf

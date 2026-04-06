@@ -1,0 +1,60 @@
+✓ Initialized. View run at 
+https://modal.com/apps/arjunvnargolwala/main/ap-XltmQ9f97SlUGlj1KnLYBT
+✓ Created objects.
+├── 🔨 Created mount /Users/arjunnargolwala/bird-climb/rl/train.py
+├── 🔨 Created function train_grpo.
+└── 🔨 Created function collect_rollouts.
+
+=== Phase 2: GRPO Training ===
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.8.0
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+============================================================
+Phase 2: GRPO Training
+============================================================
+Loaded 1000 rollouts
+Rollouts with reward variance: 295/1000
+Loading policy model + LoRA...
+`torch_dtype` is deprecated! Use `dtype` instead!
+
+[1ALoading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+[1ALoading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.90s/it]
+[1ALoading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.88s/it]
+[1ALoading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.77s/it]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.24s/it]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:05<00:00,  1.46s/it]
+trainable params: 40,370,176 || all params: 7,655,986,688 || trainable%: 0.5273
+Loading reference model (frozen)...
+
+[1ALoading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+[1ALoading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.01s/it]
+[1ALoading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.03it/s]
+[1ALoading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.09it/s]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.54it/s]
+[1ALoading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.31it/s]
+Training: 295 rollouts, batch_size=4, epochs=3, steps=219
+
+--- Epoch 1/3 ---
+Step 10/219 | loss=-0.3329 | kl=-0.0013 | reward=0.462 | exact=0.500 | lr=4.98e-05 | elapsed=50s | eta=1044s
+Step 20/219 | loss=-0.6446 | kl=-0.0097 | reward=0.540 | exact=0.750 | lr=4.91e-05 | elapsed=98s | eta=976s
+Step 30/219 | loss=-1.2095 | kl=-0.0468 | reward=0.529 | exact=0.562 | lr=4.79e-05 | elapsed=143s | eta=898s
+Step 40/219 | loss=-1.0602 | kl=-0.1317 | reward=0.556 | exact=0.500 | lr=4.64e-05 | elapsed=191s | eta=856s
+Step 50/219 | loss=-2.9645 | kl=-0.2901 | reward=0.522 | exact=0.500 | lr=4.45e-05 | elapsed=233s | eta=787s
+Step 60/219 | loss=-3.2532 | kl=-0.3852 | reward=0.439 | exact=0.250 | lr=4.22e-05 | elapsed=287s | eta=761s
+Step 70/219 | loss=-9.4398 | kl=-0.6178 | reward=0.491 | exact=0.375 | lr=3.96e-05 | elapsed=335s | eta=714s
+
+--- Epoch 2/3 ---
+Step 80/219 | loss=-15.7591 | kl=-0.6546 | reward=0.450 | exact=0.375 | lr=3.67e-05 | elapsed=381s | eta=662s
+Step 90/219 | loss=-22.9414 | kl=-0.5793 | reward=0.483 | exact=0.375 | lr=3.37e-05 | elapsed=434s | eta=623s

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional
 
 
-# ── Data Loading ──────────────────────────────────────────────────
+# Data Loading
 
 def load_dev_tasks(data_dir: str) -> list[dict]:
     """Load BIRD dev.json and return list of task dicts."""
@@ -27,7 +27,7 @@ def load_dev_tasks(data_dir: str) -> list[dict]:
     with open(dev_json_path, "r") as f:
         tasks = json.load(f)
     
-    # Normalize keys - BIRD uses 'evidence' for hints
+    # Normalize keys
     for i, task in enumerate(tasks):
         task["task_idx"] = i
         if "evidence" in task:
@@ -63,7 +63,7 @@ def load_predictions(predictions_path: str) -> dict:
     return preds
 
 
-# ── SQL Execution ─────────────────────────────────────────────────
+# SQL Execution
 
 def execute_sql(db_path: str, sql: str, timeout: float = 10.0) -> tuple[Optional[list[tuple]], Optional[str]]:
     """
@@ -141,7 +141,7 @@ def compare_results(pred_results: list[tuple], gold_results: list[tuple]) -> boo
     return pred_norm == gold_norm
 
 
-# ── Evaluation ────────────────────────────────────────────────────
+# Evaluation
 
 def evaluate_task(
     task: dict,
@@ -307,7 +307,7 @@ def run_evaluation(
     return output
 
 
-# ── CLI ───────────────────────────────────────────────────────────
+# CLI 
 
 def main():
     parser = argparse.ArgumentParser(description="BIRD Text-to-SQL Evaluation Harness")

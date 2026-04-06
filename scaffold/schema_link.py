@@ -176,7 +176,7 @@ def format_linked_profile(profile: dict, question: str, hint: str = "") -> str:
     return format_profile(linked)
 
 
-# ── CLI for testing ──────────────────────────────────────────────
+# CLI for testing
 
 if __name__ == "__main__":
     import argparse

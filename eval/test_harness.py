@@ -36,7 +36,7 @@ def check(name, condition, detail=""):
         print(f"  FAIL  {name}  {detail}")
 
 
-# ── 1. load_dev_tasks ────────────────────────────────────────────
+# load_dev_tasks 
 print("\n=== load_dev_tasks ===")
 tasks = load_dev_tasks(DATA_DIR)
 check("loads list", isinstance(tasks, list))
@@ -45,7 +45,7 @@ check("task_idx added", tasks[0].get("task_idx") == 0)
 check("hint normalized", "hint" in tasks[0])
 check("has required keys", all(k in tasks[0] for k in ["db_id", "question", "SQL"]))
 
-# ── 2. get_db_path ───────────────────────────────────────────────
+# get_db_path 
 print("\n=== get_db_path ===")
 db_path = get_db_path(DATA_DIR, "california_schools")
 check("returns path", db_path.endswith(".sqlite"))
@@ -57,7 +57,7 @@ try:
 except FileNotFoundError:
     check("raises on missing db", True)
 
-# ── 3. execute_sql ───────────────────────────────────────────────
+# execute_sql 
 print("\n=== execute_sql ===")
 db_path = get_db_path(DATA_DIR, "california_schools")
 
@@ -72,7 +72,7 @@ check("error mentions table", "no such table" in err.lower())
 results, err = execute_sql(db_path, "SELEKT broken")
 check("syntax error returns error", results is None and err is not None)
 
-# ── 4. normalize_result_set ──────────────────────────────────────
+# normalize_result_set 
 print("\n=== normalize_result_set ===")
 
 # Int/float equivalence
@@ -92,7 +92,7 @@ check("order insensitive",
 check("multi-column",
       normalize_result_set([("a", 1), ("b", 2)]) == normalize_result_set([("b", 2), ("a", 1)]))
 
-# ── 5. compare_results ──────────────────────────────────────────
+# compare_results 
 print("\n=== compare_results ===")
 check("identical match", compare_results([(1, "a")], [(1, "a")]))
 check("order doesn't matter", compare_results([(1,), (2,)], [(2,), (1,)]))
@@ -101,7 +101,7 @@ check("mismatch detected", not compare_results([(1,)], [(2,)]))
 check("empty sets match", compare_results([], []))
 check("empty vs non-empty", not compare_results([], [(1,)]))
 
-# ── 6. evaluate_task (gold == pred should match) ─────────────────
+# evaluate_task (gold == pred should match)
 print("\n=== evaluate_task (gold SQL as prediction) ===")
 # Use gold SQL as prediction — should always match
 task0 = tasks[0]
@@ -122,7 +122,7 @@ for idx in test_indices:
         print(f"    gold mismatch at task {idx}: {r.get('error_type')} {r.get('pred_error', '')}")
 check("gold SQL matches itself on 5 tasks", all_gold_match)
 
-# ── 7. evaluate_task (wrong SQL) ─────────────────────────────────
+# evaluate_task (wrong SQL) 
 print("\n=== evaluate_task (wrong predictions) ===")
 result = evaluate_task(task0, "SELECT 999999", DATA_DIR)
 check("wrong answer detected", result["match"] is False)
@@ -132,7 +132,7 @@ result = evaluate_task(task0, "SELEKT broken", DATA_DIR)
 check("syntax error detected", result["match"] is False)
 check("error_type=pred_error", result["error_type"] == "pred_error")
 
-# ── 8. load_predictions (both formats) ───────────────────────────
+# load_predictions (both formats) 
 print("\n=== load_predictions ===")
 with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
     json.dump({"0": "SELECT 1", "1": "SELECT 2"}, f)
@@ -149,7 +149,7 @@ check("list format", preds_list == {"0": "SELECT 1", "1": "SELECT 2"})
 os.unlink(dict_path)
 os.unlink(list_path)
 
-# ── 9. run_evaluation (small test) ──────────────────────────────
+# run_evaluation (small test) 
 print("\n=== run_evaluation (10 tasks, gold SQL) ===")
 # Create predictions from gold SQL for first 10 tasks
 gold_preds = {str(t["task_idx"]): t["SQL"] for t in tasks[:10]}
@@ -173,13 +173,13 @@ check("saved output has results", "results" in saved and len(saved["results"]) =
 
 os.unlink(gold_pred_path)
 
-# ── 10. analyze.py ───────────────────────────────────────────────
+# analyze.py
 print("\n=== analyze_results ===")
 analysis = analyze_results(output_path)
 check("has error_categories", "error_categories" in analysis)
 check("has db_errors", "db_errors" in analysis)
 
-# ── 11. categorize_error ─────────────────────────────────────────
+# categorize_error 
 print("\n=== categorize_error ===")
 check("correct", categorize_error({"match": True}) == "correct")
 check("syntax_error", categorize_error({"match": False, "pred_error": "near syntax error"}) == "syntax_error")
@@ -190,7 +190,7 @@ check("gold_error", categorize_error({"match": False, "skipped": True}) == "gold
 
 os.unlink(output_path)
 
-# ── 12. tracker.py ───────────────────────────────────────────────
+# tracker.py 
 print("\n=== tracker ===")
 with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
     tracker_path = f.name
@@ -206,7 +206,7 @@ records = load_experiments(tracker_path)
 check("logged 2 records", len(records) == 2)
 os.unlink(tracker_path)
 
-# ── Summary ──────────────────────────────────────────────────────
+# Summary
 print(f"\n{'='*50}")
 print(f"Results: {passed} passed, {failed} failed out of {passed + failed}")
 print(f"{'='*50}")

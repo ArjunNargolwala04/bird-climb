@@ -187,7 +187,7 @@ def format_profile(profile: dict) -> str:
     return "\n".join(parts)
 
 
-# ── CLI for testing ───────────────────────────────────────────────
+# CLI for testing
 
 if __name__ == "__main__":
     import argparse

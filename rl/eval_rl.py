@@ -22,9 +22,7 @@ import json
 import time
 import argparse
 
-# ---------------------------------------------------------------------------
 # Modal app for serving the 7B model
-# ---------------------------------------------------------------------------
 
 app = modal.App("bird-climb-7b")
 
@@ -173,9 +171,7 @@ class Qwen7BLoRA:
         ]
 
 
-# ---------------------------------------------------------------------------
 # Local evaluation logic
-# ---------------------------------------------------------------------------
 
 def extract_sql(text: str) -> str:
     """Extract SQL from model output."""
@@ -284,7 +280,7 @@ def main():
     from eval.tracker import log_experiment
     from eval.analyze import compare_runs
 
-    # ── 1. Baseline 7B ──────────────────────────────────────────
+    # Baseline 7B 
     baseline_path = "results/baseline_7b.json"
     baseline_eval_path = "results/baseline_7b_detailed.json"
 
@@ -319,7 +315,7 @@ def main():
     else:
         print("Skipping baseline (--skip_baseline)")
 
-    # ── 2. RL-trained 7B ────────────────────────────────────────
+    # RL-trained 7B 
     rl_path = "results/rl_7b.json"
     rl_eval_path = "results/rl_7b_detailed.json"
 
@@ -359,7 +355,7 @@ def main():
     else:
         print("Skipping RL model (--skip_rl)")
 
-    # ── 3. Comparison ───────────────────────────────────────────
+    # Comparison 
     if os.path.exists(baseline_eval_path) and os.path.exists(rl_eval_path):
         print("\n" + "=" * 60)
         print("COMPARISON: Base 7B vs RL 7B")

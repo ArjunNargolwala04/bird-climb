@@ -37,9 +37,7 @@ base_image = (
 
 MODEL_ID = "Qwen/Qwen2.5-Coder-7B-Instruct"
 
-# ---------------------------------------------------------------------------
 # Inlined helpers (no imports from scaffold/ or eval/ — runs in Modal)
-# ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT_V2 = """You are an expert SQLite SQL developer. Given a database schema and a natural language question, write a SQL query that answers the question.
 
@@ -215,9 +213,7 @@ def compute_reward(generated_sql: str, gold_sql: str, db_path: str) -> float:
     return 0.1
 
 
-# ---------------------------------------------------------------------------
 # Phase 1: Rollout collection (vLLM)
-# ---------------------------------------------------------------------------
 
 @app.function(
     image=base_image,
@@ -385,9 +381,7 @@ def collect_rollouts(
     return {"num_tasks": len(rollouts), "avg_reward": avg_reward, "exact_match": exact_match}
 
 
-# ---------------------------------------------------------------------------
 # Phase 2: Training (HF + peft)
-# ---------------------------------------------------------------------------
 
 @app.function(
     image=base_image,
@@ -405,6 +399,7 @@ def train_grpo(
     log_every: int = 10,
     checkpoint_every: int = 200,
     dry_run: bool = False,
+    epochs: int = 1,
 ):
     import json
     import random
@@ -470,14 +465,14 @@ def train_grpo(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=lr, weight_decay=0.01,
     )
-    total_steps = len(useful) // batch_size
+    steps_per_epoch = len(useful) // batch_size
+    total_steps = steps_per_epoch * epochs
     from torch.optim.lr_scheduler import CosineAnnealingLR
     scheduler = CosineAnnealingLR(optimizer, T_max=max(total_steps, 1), eta_min=lr * 0.1)
 
-    print(f"Training: {len(useful)} rollouts, batch_size={batch_size}, steps={total_steps}", flush=True)
+    print(f"Training: {len(useful)} rollouts, batch_size={batch_size}, epochs={epochs}, steps={total_steps}", flush=True)
 
     # Training loop
-    random.shuffle(useful)
     start_time = time.time()
     global_step = 0
     running_loss = 0.0
@@ -488,113 +483,108 @@ def train_grpo(
     CHECKPOINT_DIR = "/models/rl_checkpoints"
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-    for batch_start in range(0, len(useful), batch_size):
-        batch = useful[batch_start:batch_start + batch_size]
-        if not batch:
-            continue
+    for epoch in range(epochs):
+        random.shuffle(useful)
+        print(f"\n--- Epoch {epoch+1}/{epochs} ---", flush=True)
+        for batch_start in range(0, len(useful), batch_size):
+            batch = useful[batch_start:batch_start + batch_size]
+            if not batch:
+                continue
 
-        global_step += 1
-        batch_loss = 0.0
-        batch_kl = 0.0
-        batch_rewards = []
-        n_updates = 0
+            global_step += 1
+            batch_loss = 0.0
+            batch_kl = 0.0
+            batch_rewards = []
+            n_updates = 0
 
-        for rollout in batch:
-            prompt_text = rollout["prompt_text"]
-            completions = rollout["completions"]
-            rewards = [c["reward"] for c in completions]
-            mean_r = sum(rewards) / len(rewards)
-            std_r = (sum((r - mean_r) ** 2 for r in rewards) / len(rewards)) ** 0.5 + 1e-8
-            advantages = [(r - mean_r) / std_r for r in rewards]
+            for rollout in batch:
+                prompt_text = rollout["prompt_text"]
+                completions = rollout["completions"]
+                rewards = [c["reward"] for c in completions]
+                mean_r = sum(rewards) / len(rewards)
+                std_r = (sum((r - mean_r) ** 2 for r in rewards) / len(rewards)) ** 0.5 + 1e-8
+                advantages = [(r - mean_r) / std_r for r in rewards]
 
-            batch_rewards.extend(rewards)
+                batch_rewards.extend(rewards)
 
-            for comp, advantage in zip(completions, advantages):
-                if abs(advantage) < 1e-6:
-                    continue
+                for comp, advantage in zip(completions, advantages):
+                    if abs(advantage) < 1e-6:
+                        continue
 
-                # Tokenize prompt + completion
-                full_text = prompt_text + comp["text"]
-                prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
-                full_ids = tokenizer.encode(full_text, add_special_tokens=False)
-                gen_ids = full_ids[len(prompt_ids):]
+                    full_text = prompt_text + comp["text"]
+                    prompt_ids = tokenizer.encode(prompt_text, add_special_tokens=False)
+                    full_ids = tokenizer.encode(full_text, add_special_tokens=False)
+                    gen_ids = full_ids[len(prompt_ids):]
 
-                if len(gen_ids) == 0:
-                    continue
+                    if len(gen_ids) == 0:
+                        continue
 
-                full_tensor = torch.tensor([full_ids], device=model.device)
-                gen_tensor = torch.tensor(gen_ids, device=model.device)
-                prompt_len = len(prompt_ids)
+                    full_tensor = torch.tensor([full_ids], device=model.device)
+                    gen_tensor = torch.tensor(gen_ids, device=model.device)
+                    prompt_len = len(prompt_ids)
 
-                # Policy forward pass
-                model.train()
-                policy_logits = model(full_tensor).logits[:, prompt_len - 1:-1, :]
-                policy_log_probs = F.log_softmax(policy_logits, dim=-1)
-                token_log_probs = policy_log_probs.gather(
-                    2, gen_tensor.unsqueeze(0).unsqueeze(-1)
-                ).squeeze(-1).squeeze(0)
-
-                # Reference forward pass
-                with torch.no_grad():
-                    ref_logits = ref_model(full_tensor).logits[:, prompt_len - 1:-1, :]
-                    ref_log_probs = F.log_softmax(ref_logits, dim=-1)
-                    ref_token_log_probs = ref_log_probs.gather(
+                    model.train()
+                    policy_logits = model(full_tensor).logits[:, prompt_len - 1:-1, :]
+                    policy_log_probs = F.log_softmax(policy_logits, dim=-1)
+                    token_log_probs = policy_log_probs.gather(
                         2, gen_tensor.unsqueeze(0).unsqueeze(-1)
                     ).squeeze(-1).squeeze(0)
 
-                # KL and loss
-                kl = (token_log_probs - ref_token_log_probs).mean()
-                adv_tensor = torch.tensor(advantage, device=model.device, dtype=torch.bfloat16)
-                loss = -(adv_tensor * token_log_probs.sum()) + kl_coeff * kl
+                    with torch.no_grad():
+                        ref_logits = ref_model(full_tensor).logits[:, prompt_len - 1:-1, :]
+                        ref_log_probs = F.log_softmax(ref_logits, dim=-1)
+                        ref_token_log_probs = ref_log_probs.gather(
+                            2, gen_tensor.unsqueeze(0).unsqueeze(-1)
+                        ).squeeze(-1).squeeze(0)
 
-                # Scale by batch
-                total_comps = sum(len(r["completions"]) for r in batch)
-                (loss / total_comps).backward()
+                    kl = (token_log_probs - ref_token_log_probs).mean()
+                    adv_tensor = torch.tensor(advantage, device=model.device, dtype=torch.bfloat16)
+                    loss = -(adv_tensor * token_log_probs.sum()) + kl_coeff * kl
 
-                batch_loss += loss.item()
-                batch_kl += kl.item()
-                n_updates += 1
+                    total_comps = sum(len(r["completions"]) for r in batch)
+                    (loss / total_comps).backward()
 
-        # Optimizer step
-        if n_updates > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            optimizer.step()
-            scheduler.step()
-        optimizer.zero_grad()
+                    batch_loss += loss.item()
+                    batch_kl += kl.item()
+                    n_updates += 1
 
-        running_loss += batch_loss / max(n_updates, 1)
-        running_kl += batch_kl / max(n_updates, 1)
-        running_reward += sum(batch_rewards)
-        running_count += len(batch_rewards)
+            if n_updates > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                optimizer.step()
+                scheduler.step()
+            optimizer.zero_grad()
 
-        # Logging
-        if global_step % log_every == 0:
-            elapsed = time.time() - start_time
-            eta = (elapsed / global_step) * (total_steps - global_step)
-            avg_loss = running_loss / log_every
-            avg_kl = running_kl / log_every
-            avg_reward = running_reward / max(running_count, 1)
-            exact = sum(1 for r in batch_rewards if r == 1.0) / max(len(batch_rewards), 1)
-            print(
-                f"Step {global_step}/{total_steps} | "
-                f"loss={avg_loss:.4f} | kl={avg_kl:.4f} | "
-                f"reward={avg_reward:.3f} | exact={exact:.3f} | "
-                f"lr={scheduler.get_last_lr()[0]:.2e} | "
-                f"elapsed={elapsed:.0f}s | eta={eta:.0f}s",
-                flush=True,
-            )
-            running_loss = 0.0
-            running_kl = 0.0
-            running_reward = 0.0
-            running_count = 0
+            running_loss += batch_loss / max(n_updates, 1)
+            running_kl += batch_kl / max(n_updates, 1)
+            running_reward += sum(batch_rewards)
+            running_count += len(batch_rewards)
 
-        # Checkpoint
-        if global_step % checkpoint_every == 0:
-            ckpt_path = os.path.join(CHECKPOINT_DIR, f"checkpoint-{global_step}")
-            model.save_pretrained(ckpt_path)
-            tokenizer.save_pretrained(ckpt_path)
-            models_volume.commit()
-            print(f"  Saved checkpoint: {ckpt_path}", flush=True)
+            if global_step % log_every == 0:
+                elapsed = time.time() - start_time
+                eta = (elapsed / global_step) * (total_steps - global_step)
+                avg_loss = running_loss / log_every
+                avg_kl = running_kl / log_every
+                avg_reward = running_reward / max(running_count, 1)
+                exact = sum(1 for r in batch_rewards if r == 1.0) / max(len(batch_rewards), 1)
+                print(
+                    f"Step {global_step}/{total_steps} | "
+                    f"loss={avg_loss:.4f} | kl={avg_kl:.4f} | "
+                    f"reward={avg_reward:.3f} | exact={exact:.3f} | "
+                    f"lr={scheduler.get_last_lr()[0]:.2e} | "
+                    f"elapsed={elapsed:.0f}s | eta={eta:.0f}s",
+                    flush=True,
+                )
+                running_loss = 0.0
+                running_kl = 0.0
+                running_reward = 0.0
+                running_count = 0
+
+            if global_step % checkpoint_every == 0:
+                ckpt_path = os.path.join(CHECKPOINT_DIR, f"checkpoint-{global_step}")
+                model.save_pretrained(ckpt_path)
+                tokenizer.save_pretrained(ckpt_path)
+                models_volume.commit()
+                print(f"  Saved checkpoint: {ckpt_path}", flush=True)
 
     # Save final
     final_path = os.path.join(CHECKPOINT_DIR, "final")
@@ -611,24 +601,28 @@ def train_grpo(
     return {"steps": global_step, "elapsed": elapsed, "checkpoint": final_path}
 
 
-# ---------------------------------------------------------------------------
 # Entrypoint
-# ---------------------------------------------------------------------------
 
 @app.local_entrypoint()
 def main(
     num_tasks: int = 2500,
     group_size: int = 8,
     dry_run: bool = False,
+    train_only: bool = False,
 ):
-    print("=== Phase 1: Rollout Collection ===")
-    rollout_result = collect_rollouts.remote(
-        num_tasks=num_tasks,
-        group_size=group_size,
-        dry_run=dry_run,
-    )
-    print(f"Rollout result: {rollout_result}")
+    if not train_only:
+        print("=== Phase 1: Rollout Collection ===")
+        rollout_result = collect_rollouts.remote(
+            num_tasks=num_tasks,
+            group_size=group_size,
+            dry_run=dry_run,
+        )
+        print(f"Rollout result: {rollout_result}")
 
     print("\n=== Phase 2: GRPO Training ===")
-    train_result = train_grpo.remote(dry_run=dry_run)
+    train_result = train_grpo.remote(
+        dry_run=dry_run,
+        lr=2e-5,
+        epochs=2,
+    )
     print(f"Training result: {train_result}")

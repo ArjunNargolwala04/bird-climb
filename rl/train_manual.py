@@ -34,9 +34,7 @@ training_image = (
     )
 )
 
-# ---------------------------------------------------------------------------
 # Inlined prompt construction (from scaffold/prompt.py and scaffold/profile.py)
-# ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT_V2 = """You are an expert SQLite SQL developer. Given a database schema and a natural language question, write a SQL query that answers the question.
 
@@ -195,9 +193,7 @@ def extract_sql(text: str) -> str:
     return text.strip()
 
 
-# ---------------------------------------------------------------------------
 # Inlined reward function (from rl/reward.py)
-# ---------------------------------------------------------------------------
 
 def compute_reward(generated_sql: str, gold_sql: str, db_path: str, timeout: float = 5.0) -> float:
     """Compute execution-accuracy reward."""
@@ -243,9 +239,7 @@ def compute_reward(generated_sql: str, gold_sql: str, db_path: str, timeout: flo
     return 0.1  # partial credit: valid SQL, wrong result
 
 
-# ---------------------------------------------------------------------------
 # Training function
-# ---------------------------------------------------------------------------
 
 @app.function(
     image=training_image,
@@ -284,7 +278,7 @@ def train(
     CHECKPOINT_DIR = "/models/rl_checkpoints"
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-    # ── 1. Load training data ────────────────────────────────────
+    # Load training data 
     print("\n[1/6] Loading training data...")
     with open("/train_data/train.json") as f:
         all_tasks = json.load(f)
@@ -295,7 +289,7 @@ def train(
     db_counts = Counter(t["db_id"] for t in all_tasks)
     print(f"Total tasks: {len(all_tasks)}, databases: {len(db_counts)}")
 
-    # ── 2. Profile databases ─────────────────────────────────────
+    # Profile databases
     print("\n[2/6] Profiling training databases...")
     db_dir = "/train_data/train_databases"
     profile_cache = {}
@@ -318,7 +312,7 @@ def train(
     tasks = [t for t in all_tasks if t["db_id"] in available_dbs]
     print(f"Tasks with available databases: {len(tasks)}")
 
-    # ── 3. Build prompts and filter by length ────────────────────
+    # Build prompts and filter by length
     print("\n[3/6] Building prompts and filtering by token length...")
 
     # Load tokenizer for length filtering
@@ -371,7 +365,7 @@ def train(
         training_examples = training_examples[:num_tasks]
     print(f"Training on {len(training_examples)} tasks")
 
-    # ── 4. Load models ───────────────────────────────────────────
+    # Load models
     print("\n[4/6] Loading model and applying LoRA...")
 
     model = AutoModelForCausalLM.from_pretrained(
@@ -419,7 +413,7 @@ def train(
     from torch.optim.lr_scheduler import CosineAnnealingLR
     scheduler = CosineAnnealingLR(optimizer, T_max=total_steps, eta_min=lr * 0.1)
 
-    # ── 5. Training loop ─────────────────────────────────────────
+    # Training loop
     print("\n[5/6] Starting GRPO training...")
     start_time = time.time()
     global_step = 0
@@ -562,7 +556,7 @@ def train(
         print(f"  Exact match rate: {epoch_1_frac:.4f}")
         print(f"  Total steps: {global_step}")
 
-    # ── 6. Save final checkpoint ─────────────────────────────────
+    # Save final checkpoint
     print("\n[6/6] Saving final checkpoint...")
     final_path = os.path.join(CHECKPOINT_DIR, "final")
     model.save_pretrained(final_path)
