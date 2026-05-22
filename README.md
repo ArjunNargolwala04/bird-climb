@@ -1,4 +1,4 @@
-# bird-climb
+# bird-climb (done in only 10 hours)
 
 Maximizing execution accuracy on the [BIRD](https://bird-bench.github.io/) text-to-SQL benchmark using prompt engineering, inference-time scaling, and reinforcement learning.
 
